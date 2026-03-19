@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mira — Email Campaign Report · March 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1916;
+    --ink-2: #6b6a65;
+    --ink-3: #9e9d97;
+    --surface: #f7f5f0;
+    --card: #ffffff;
+    --border: rgba(26,25,22,0.1);
+    --border-strong: rgba(26,25,22,0.18);
+    --green: #1D9E75;
+    --green-light: #e1f5ee;
+    --blue: #185FA5;
+    --blue-light: #e6f1fb;
+    --amber: #BA7517;
+    --amber-light: #faeeda;
+    --red: #C0392B;
+    --red-light: #fcebeb;
+    --purple: #534AB7;
+    --coral: #D85A30;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Page shell ── */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  .header-left {}
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--ink-3);
+  }
+  .title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .header-right {
+    text-align: right;
+    padding-top: 6px;
+  }
+  .date-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--green-light);
+    color: #0F6E56;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .status-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  /* ── KPI row ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 2.5rem;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 0 0 12px 12px;
+  }
+  .kpi.k-blue::after { background: var(--blue); }
+  .kpi.k-green::after { background: var(--green); }
+  .kpi.k-amber::after { background: var(--amber); }
+  .kpi.k-red::after { background: var(--red); }
+
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .kpi-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .kpi-note {
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  /* ── Section ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Chart grid ── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 22px 18px;
+  }
+  .chart-card.full { grid-column: 1 / -1; }
+  .chart-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .chart-desc {
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-bottom: 16px;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── Campaign table ── */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+  .table-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .table-card thead {
+    background: var(--surface);
+  }
+  .table-card th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-card td {
+    padding: 14px 16px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .table-card tr:last-child td { border-bottom: none; }
+  .table-card tr:hover td { background: #faf9f6; }
+  .campaign-name { font-weight: 500; }
+  .seq-badge {
+    display: inline-flex;
+    align-items: center;
+    background: var(--green-light);
+    color: #0F6E56;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bar-track {
+    width: 60px;
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+  .demo-badge {
+    display: inline-flex;
+    background: #e1f5ee;
+    color: #0F6E56;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .dash { color: var(--ink-3); }
+
+  /* ── Insight strip ── */
+  .insights {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 3rem;
+  }
+  .insight {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+  }
+  .insight-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .insight-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .insight-body {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 1.5rem 1rem 3rem; }
+    .header { flex-direction: column; gap: 1rem; }
+    .header-right { text-align: left; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .insights { grid-template-columns: 1fr; }
+    .title { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="eyebrow">Email Campaign Analytics</div>
+      <h1 class="title">Campaign<br>Performance</h1>
+      <p class="subtitle">Mira · 3 active campaigns · 578 emails sent</p>
+    </div>
+    <div class="header-right">
+      <div class="date-label">March<br>2026</div>
+      <br>
+      <span class="status-pill">Sequences in progress</span>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi k-blue">
+      <div class="kpi-label">Leads imported</div>
+      <div class="kpi-value">220</div>
+      <div class="kpi-note">Across 3 campaigns</div>
+    </div>
+    <div class="kpi k-green">
+      <div class="kpi-label">Avg open rate</div>
+      <div class="kpi-value">51.6%</div>
+      <div class="kpi-note">Industry avg ~21%</div>
+    </div>
+    <div class="kpi k-amber">
+      <div class="kpi-label">Emails sent</div>
+      <div class="kpi-value">578</div>
+      <div class="kpi-note">~2.6 per lead</div>
+    </div>
+    <div class="kpi k-red">
+      <div class="kpi-label">Demos booked</div>
+      <div class="kpi-value">1</div>
+      <div class="kpi-note">From OneDoc Users</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="section-label">Performance by campaign</div>
+  <div class="charts-grid" style="margin-bottom: 14px;">
+    <div class="chart-card">
+      <div class="chart-title">Open rate</div>
+      <div class="chart-desc">% of leads who opened at least one email</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#185FA5;"></div>OneDoc Users</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1D9E75;"></div>General Campaign</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#BA7517;"></div>Axenita Users</div>
+      </div>
+      <div style="position:relative;height:200px;">
+        <canvas id="openRateChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Reply breakdown</div>
+      <div class="chart-desc">All 34 replies across campaigns</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#B4B2A9;"></div>Auto-replies — 29</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#E24B4A;"></div>Not interested — 4</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#1D9E75;"></div>Positive — 1</div>
+      </div>
+      <div style="position:relative;height:200px;">
+        <canvas id="repliesChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-grid" style="grid-template-columns: 1fr; margin-bottom: 2.5rem;">
+    <div class="chart-card">
+      <div class="chart-title">Clicks & click-through rate</div>
+      <div class="chart-desc">Total clicks (bars) vs. CTR % (line) per campaign</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#534AB7;"></div>Clicks</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#D85A30;border-radius:50%;"></div>CTR (%)</div>
+      </div>
+      <div style="position:relative;height:180px;">
+        <canvas id="ctrChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="section-label">Detailed breakdown</div>
+  <div class="table-card" style="margin-bottom: 2.5rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>Campaign</th>
+          <th>Leads</th>
+          <th>Emails</th>
+          <th>Sequence</th>
+          <th>Open rate</th>
+          <th>CTR</th>
+          <th>Auto-replies</th>
+          <th>Not interested</th>
+          <th>Pos replies</th>
+          <th>Demos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="campaign-name">OneDoc Users</td>
+          <td>56</td>
+          <td>143</td>
+          <td><span class="seq-badge">3 / 5</span></td>
+          <td>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:41.07%;background:#185FA5;"></div></div>
+              41.1%
+            </div>
+          </td>
+          <td>7.1%</td>
+          <td>~7</td>
+          <td style="color:#A32D2D;">~3</td>
+          <td style="color:#1D9E75;">1</td>
+          <td><span class="demo-badge">1 booked</span></td>
+        </tr>
+        <tr>
+          <td class="campaign-name">General Campaign</td>
+          <td>154</td>
+          <td>407</td>
+          <td><span class="seq-badge">3 / 6</span></td>
+          <td>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:63.64%;background:#1D9E75;"></div></div>
+              63.6%
+            </div>
+          </td>
+          <td>11.9%</td>
+          <td>~21</td>
+          <td style="color:#A32D2D;">~1</td>
+          <td class="dash">0</td>
+          <td class="dash">—</td>
+        </tr>
+        <tr>
+          <td class="campaign-name">Axenita Users</td>
+          <td>10</td>
+          <td>28</td>
+          <td><span class="seq-badge">3 / 7</span></td>
+          <td>
+            <div class="bar-wrap">
+              <div class="bar-track"><div class="bar-fill" style="width:30%;background:#BA7517;"></div></div>
+              30.0%
+            </div>
+          </td>
+          <td>10.0%</td>
+          <td>~1</td>
+          <td class="dash">0</td>
+          <td class="dash">0</td>
+          <td class="dash">—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Insights -->
+  <div class="section-label">Key takeaways</div>
+  <div class="insights">
+    <div class="insight">
+      <div class="insight-icon" style="background:var(--green-light);">📈</div>
+      <div class="insight-title">Strong open rates</div>
+      <div class="insight-body">All campaigns exceed industry average (~21%). General Campaign at 63.6% is exceptional — subject lines and targeting are working.</div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon" style="background:var(--red-light);">⚠️</div>
+      <div class="insight-title">Mostly auto-replies</div>
+      <div class="insight-body">29 of 33 flagged replies are auto-replies. Only 4 leads actively said no — a true rejection rate of just 1.8% across all leads.</div>
+    </div>
+    <div class="insight">
+      <div class="insight-icon" style="background:var(--blue-light);">🔄</div>
+      <div class="insight-title">Sequences still running</div>
+      <div class="insight-body">All campaigns are at step 3. Remaining steps are an opportunity to refine copy and convert warm leads before sequences close.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span>Mira · Email Analytics · March 2026</span>
+    <span>Generated March 19, 2026</span>
+  </footer>
+
+</div>
+
+<script>
+  const campaigns = ['OneDoc Users', 'General Campaign', 'Axenita Users'];
+
+  new Chart(document.getElementById('openRateChart'), {
+    type: 'bar',
+    data: {
+      labels: campaigns,
+      datasets: [{
+        data: [41.07, 63.64, 30],
+        backgroundColor: ['#185FA5', '#1D9E75', '#BA7517'],
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.raw.toFixed(1) + '%' } } },
+      scales: {
+        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 11 }, color: '#9e9d97' }, grid: { color: 'rgba(26,25,22,0.07)' }, border: { display: false } },
+        x: { ticks: { font: { size: 11 }, color: '#9e9d97' }, grid: { display: false }, border: { display: false } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('repliesChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Auto-replies', 'Not interested', 'Positive'],
+      datasets: [{ data: [29, 4, 1], backgroundColor: ['#B4B2A9', '#E24B4A', '#1D9E75'], borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw } } }
+    }
+  });
+
+  new Chart(document.getElementById('ctrChart'), {
+    type: 'bar',
+    data: {
+      labels: campaigns,
+      datasets: [
+        { label: 'Clicks', data: [4, 11, 1], backgroundColor: '#534AB7', borderRadius: 5, borderSkipped: false, yAxisID: 'y' },
+        { label: 'CTR (%)', data: [7.14, 11.94, 10], type: 'line', borderColor: '#D85A30', backgroundColor: 'rgba(216,90,48,0.08)', pointBackgroundColor: '#D85A30', pointRadius: 5, tension: 0.3, yAxisID: 'y2', fill: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, position: 'left', ticks: { font: { size: 11 }, color: '#9e9d97', stepSize: 4 }, grid: { color: 'rgba(26,25,22,0.07)' }, border: { display: false }, title: { display: true, text: 'Clicks', font: { size: 11 }, color: '#9e9d97' } },
+        y2: { beginAtZero: true, position: 'right', max: 20, ticks: { callback: v => v + '%', font: { size: 11 }, color: '#9e9d97' }, grid: { display: false }, border: { display: false }, title: { display: true, text: 'CTR', font: { size: 11 }, color: '#9e9d97' } },
+        x: { ticks: { font: { size: 11 }, color: '#9e9d97' }, grid: { display: false }, border: { display: false } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
