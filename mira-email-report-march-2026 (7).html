@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mira — Email Campaign Report · March 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal-dark: #003B44;
+    --teal-mid: #005360;
+    --cyan: #00CAD8;
+    --cyan-light: #e0f9fb;
+    --cyan-mid: #7de8ef;
+    --ink: #0d1f22;
+    --ink-2: #4a6569;
+    --ink-3: #8aa8ad;
+    --surface: #f4fafb;
+    --card: #ffffff;
+    --border: rgba(0,59,68,0.1);
+    --border-strong: rgba(0,59,68,0.18);
+  }
+  html { font-size: 16px; }
+  body { background: var(--surface); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 400; line-height: 1.6; min-height: 100vh; }
+  .page { max-width: 960px; margin: 0 auto; padding: 0 0 5rem; }
+
+  /* topbar */
+  .topbar { background: var(--teal-dark); padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between; height: 68px; margin-bottom: 2.5rem; }
+  .topbar img { height: 26px; display: block; }
+  .topbar-right { font-size: 12px; color: rgba(255,255,255,0.45); letter-spacing: 0.05em; }
+
+  /* hero */
+  .hero { padding: 0 2.5rem 2rem; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--border-strong); margin-bottom: 2rem; }
+  .eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan); margin-bottom: 8px; }
+  .hero h1 { font-size: 38px; font-weight: 300; line-height: 1.1; color: var(--teal-dark); margin-bottom: 8px; letter-spacing: -0.5px; }
+  .hero h1 strong { font-weight: 500; }
+  .hero-sub { font-size: 14px; color: var(--ink-2); }
+  .hero-right { text-align: right; }
+  .hero-date { font-size: 32px; font-weight: 300; color: var(--teal-dark); line-height: 1; margin-bottom: 8px; }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--cyan-light); color: var(--teal-dark); font-size: 11px; font-weight: 500; padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(0,202,216,0.3); }
+  .status-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+
+  /* content */
+  .content { padding: 0 2.5rem; }
+
+  /* section label */
+  .section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* kpi */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 2.5rem; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 18px; position: relative; overflow: hidden; }
+  .kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--cyan); border-radius: 12px 12px 0 0; }
+  .kpi.accent::after { background: var(--teal-dark); }
+  .kpi-label { font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+  .kpi-value { font-size: 34px; font-weight: 300; color: var(--teal-dark); line-height: 1; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .kpi-value span { font-size: 18px; font-weight: 400; }
+  .kpi-note { font-size: 12px; color: var(--ink-3); }
+  .kpi-note.good { color: #0a8a78; font-weight: 500; }
+
+  /* charts */
+  .charts-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 14px; margin-bottom: 14px; }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px 22px 18px; }
+  .chart-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+  .chart-desc { font-size: 12px; color: var(--ink-3); margin-bottom: 14px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* note strip */
+  .note-strip { background: var(--cyan-light); border: 1px solid rgba(0,202,216,0.25); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--teal-dark); margin-bottom: 1.75rem; display: flex; gap: 10px; align-items: flex-start; }
+  .note-icon { width: 18px; height: 18px; border-radius: 50%; background: var(--cyan); color: var(--teal-dark); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+
+  /* divider */
+  .section-divider { border: none; border-top: 1px solid var(--border-strong); margin: 2.5rem 0; }
+
+  /* totals summary strip */
+  .totals-strip { background: var(--teal-dark); border-radius: 12px; padding: 22px 28px; display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 0; margin-bottom: 2.5rem; }
+  .totals-item { padding: 0 20px; border-right: 1px solid rgba(255,255,255,0.1); }
+  .totals-item:first-child { padding-left: 0; }
+  .totals-item:last-child { border-right: none; }
+  .totals-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 8px; }
+  .totals-value { font-size: 26px; font-weight: 300; color: #fff; line-height: 1; letter-spacing: -0.5px; }
+  .totals-value span { font-size: 14px; }
+  .totals-value.highlight { color: var(--cyan); }
+
+  /* table */
+  .table-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 2.5rem; }
+  .table-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .table-card thead { background: var(--teal-dark); }
+  .table-card th { text-align: left; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); padding: 12px 14px; }
+  .table-card td { padding: 13px 14px; color: var(--ink); border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .table-card tr:last-child td { border-bottom: none; }
+  .table-card tbody tr:hover td { background: var(--surface); }
+  .seq-badge { display: inline-flex; background: var(--cyan-light); color: var(--teal-dark); font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; border: 1px solid rgba(0,202,216,0.3); }
+  .seq-done { background: var(--teal-dark); color: #fff; border-color: var(--teal-dark); }
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar-track { width: 56px; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .demo-badge { display: inline-flex; background: var(--cyan-light); color: var(--teal-dark); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--cyan); }
+  .dash { color: var(--ink-3); }
+
+  /* insights */
+  .insights { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 3rem; }
+  .insight { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .insight-num { font-size: 28px; font-weight: 300; color: var(--cyan); line-height: 1; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .insight-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .insight-body { font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+
+  /* footer */
+  .footer-bar { background: var(--teal-dark); padding: 1.25rem 2.5rem; display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+  .footer-bar img { height: 20px; opacity: 0.75; }
+  .footer-bar span { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+  @media (max-width: 640px) {
+    .topbar, .hero, .content { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .kpi-row { grid-template-columns: repeat(2,1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .insights { grid-template-columns: 1fr; }
+    .totals-strip { grid-template-columns: repeat(2,1fr); gap: 16px; }
+    .totals-item { border-right: none; padding: 0; }
+    .hero { flex-direction: column; gap: 1.25rem; align-items: flex-start; }
+    .footer-bar { padding: 1rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzMzIiBoZWlnaHQ9IjE5NiIgdmlld0JveD0iMCAwIDczMyAxOTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0yNzguNzM1IDE2OS41MUgyNTEuOTg1VjQ4LjkxMDJIMjc3Ljg4NVY2MC44OTk5QzI4Ni45ODUgNTIuNDQ5OSAyOTkuODI1IDQ3LjgzOTggMzE0LjI2NSA0Ny44Mzk4QzMzMS44MTUgNDcuODM5OCAzNDYuMDQ1IDU0LjU3OTkgMzU0LjI4NSA2Ni42Njk5QzM2NC4yMzUgNTQuNjc5OSAzNzkuOTY1IDQ3LjgzOTggMzk4LjA1NSA0Ny44Mzk4QzQwNy41NzUgNDcuODM5OCA0MTYuMTM1IDQ5Ljc2OTggNDIzLjYzNSA1My41MDk4QzQzOS41NzUgNjEuNTM5OCA0NDguMDM1IDc4LjAwOTcgNDQ4LjAzNSAxMDAuN1YxNjkuNTFINDIxLjA2NVYxMDIuOTVDNDIxLjA2NSA4Mi45Mzk3IDQxMi4wNzUgNzIuNjY5OSAzOTQuNjM1IDcyLjY2OTlDMzg4LjEwNSA3Mi42Njk5IDM4Mi43NTUgNzMuOTQ5OSAzNzguMDQ1IDc2LjYyOTlDMzY4LjMwNSA4MS45Nzk5IDM2My4zODUgOTIuMjQ5NyAzNjMuMzg1IDEwNy40NVYxNjkuNTJIMzM2LjQxNVYxMDIuOTZDMzM2LjQxNSA4Mi44NCAzMjcuNjM1IDcyLjY3OTcgMzA5Ljk4NSA3Mi42Nzk3QzMwMy42NzUgNzIuNjc5NyAyOTguMjE1IDc0LjA3MDEgMjkzLjYxNSA3Ni42NDAxQzI4My43NzUgODIuMjAwMSAyNzguNzM1IDkyLjU4IDI3OC43MzUgMTA3LjQ2VjE2OS41M1YxNjkuNTFaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNDgwLjExNSAxNi41ODk4QzQ4MC4xMTUgNy4xNjk4NCA0ODcuMzk1IDAgNDk3LjIzNSAwQzUwNy4wNzUgMCA1MTQuMjQ1IDYuOTYwMTYgNTE0LjI0NSAxNi4xNjAyQzUxNC4yNDUgMjYuMDAwMiA1MDcuMDc1IDMzLjA2OTggNDk3LjIzNSAzMy4wNjk4QzQ4Ny4zOTUgMzMuMDY5OCA0ODAuMTE1IDI2LjAwOTggNDgwLjExNSAxNi41ODk4Wk01MTAuNTA1IDE2OS41MUg0ODMuODU1VjQ4LjkxMDJINTEwLjUwNVYxNjkuNTFaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNTczLjEwNSAxNjkuNTFINTQ2LjM1NVY0OC45MTAxSDU3Mi4yNTVWNjEuODU5OEM1ODEuNTY1IDUyLjExOTggNTk1LjkwNSA0Ny4xOTk3IDYxMy45ODUgNDcuOTQ5N1Y3NS4wMkM2MDkuODE1IDczLjk1IDYwOS40OTUgNzMuOTQ5NiA2MDguNDI1IDczLjk0OTZINjA2LjE3NUM1ODUuMDk1IDczLjk0OTYgNTczLjEwNSA4Ni43ODk5IDU3My4xMDUgMTA5LjQ4VjE2OS41MVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik02NDkuOTM1IDE2Ni44M0M2MzUuNTk1IDE2MC40MSA2MjcuMzU1IDE0OC4zMiA2MjcuMzU1IDEzMy41NUM2MjcuMzU1IDEyNy4xMyA2MjkuMDY1IDEyMC45MiA2MzIuNDk1IDExNC43MkM2MzkuNDU1IDEwMi45NSA2NTQuNDM2IDk2Ljk2IDY3Ni4yNjYgOTYuOTZINzA2LjEyNVY5NS44OTAxQzcwNi4xMjUgODAuNDgwMSA2OTcuNjc1IDcyLjg3OTkgNjgwLjIyNSA3Mi44Nzk5QzY2NS4xMzUgNzIuODc5OSA2NTcuMDA2IDc4LjY1OTggNjU0LjY0NiA5MC4zMTk4TDYzMS4yMTUgNzcuMjU5OEM2MzcuMzE1IDU4LjUyOTggNjU0Ljg2NSA0OC4yNTk4IDY4MC4yMjUgNDguMjU5OEM3MTMuNjE1IDQ4LjI1OTggNzMyLjk4NSA2Ni4wMiA3MzIuOTg1IDk2LjUyVjE3MC4xNEg3MDYuNjY2VjE2MS43OUM2OTguMjE2IDE2Ny43OCA2ODYuOTc1IDE3MS4xIDY3NC4yNDUgMTcxLjFDNjY1LjI1NSAxNzEuMSA2NTcuMDE1IDE2OS42IDY0OS45NTUgMTY2LjgyTDY0OS45MzUgMTY2LjgzWk03MDYuMTE1IDEzMC4yNFYxMTkuMzJINjc2LjY4NUM2NjAuOTU1IDExOS4zMiA2NTMuODk2IDEyMy45MiA2NTMuODk2IDEzMy4xMkM2NTMuODk2IDE0Mi4zMiA2NjIuMDI2IDE0Ny44OSA2NzYuMjY2IDE0Ny44OUM2OTAuNTA2IDE0Ny44OSA3MDAuNzY1IDE0MiA3MDYuMTI1IDEzMC4yM0w3MDYuMTE1IDEzMC4yNFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xOTEuMTU1IDM4LjA4OTlDMTg5Ljc0NSAzMC41OTk5IDE4Ni41MjUgMjQuMTYwMSAxNzguODM1IDE3LjMxMDFDMTUxLjM3NSAtNy4xNDk4NSAxMTUuNDE1IDE1LjM2MDEgOTUuOTU1MSAzOC4yMTAxQzc2LjQ5NTEgMTUuMzUwMSA0MC41MjUyIC03LjE0OTg1IDEzLjA3NTIgMTcuMzEwMUM1LjM4NTE5IDI0LjE2MDEgMi4xNjUxOCAzMC41OTk5IDAuNzU1MTggMzguMDg5OUMwLjEwNTE4IDQxLjU1OTkgLTAuMTE0ODMyIDQ1LjA1OTkgMC4wNTUxNjgxIDQ4LjU0OTlDMC4xOTUxNjggNzYuOTc5OSAwLjM3NTE3MSAxMzUuODcgMC4yNDUxNzEgMTU1LjIxQzAuMjQ1MTcxIDE1Ni4yNyAwLjI5NTEzMiAxNTcuMzMgMC40NTUxMzIgMTU4LjM4QzYuODc1MTMgMTk5LjcgNjAuMzQ1MiAyMDkuMzQgODEuNDQ1MiAxNzIuNjdDOTAuNjM1MiAxNTYuNjkgODcuNzM1MiAxMjUuMTkgODcuNzM1MiAxMjUuMTlDODcuNzY1MiAxMjQuNTIgODcuMjQ1MSAxMDcuMTEgNzUuNjQ1MSA4OC42M0M2Ni4wNDUxIDczLjM0IDUwLjIzNTIgNzAuNDI5OCAzOC4zNjUyIDU5LjY3OThDMjkuOTM1MiA1Mi4wMzk4IDMyLjI0NTIgNDAuNzMwMiA0MS4yNDUyIDM5LjMzMDJDNDQuMjk1MiAzOC44NjAyIDQ3LjQwNTEgMzkuNzYwMiA0OS44OTUxIDQxLjU4MDJDNTguMzY1MSA0Ny43NzAyIDY2LjU2NTIgNTQuMjkgNzMuNjI1MiA2Mi4xNUM4My4wMTUyIDcyLjYxIDkwLjk4NTIgODQuODYgOTUuNjg1MiA5OC4xM0M5NS43NDUyIDk4LjE4IDk1LjgzNTEgOTguMTI5OSA5NS45NTUxIDk4LjAwOTlDOTYuMDY1MSA5OC4xMjk5IDk2LjE2NTIgOTguMTggOTYuMjI1MiA5OC4xM0MxMDAuOTM1IDg0Ljg2IDEwOC44OTUgNzIuNjEgMTE4LjI4NSA2Mi4xNUMxMjUuMzM1IDU0LjMgMTMzLjUzNSA0Ny43NzAyIDE0Mi4wMTUgNDEuNTgwMkMxNDQuNTE1IDM5Ljc2MDIgMTQ3LjYxNSAzOC44NTAyIDE1MC42NzUgMzkuMzMwMkMxNTkuNjg1IDQwLjczMDIgMTYxLjk5NSA1Mi4wMzk4IDE1My41NTUgNTkuNjc5OEMxNDEuNjk1IDcwLjQyOTggMTI1Ljg3NSA3My4zMyAxMTYuMjc1IDg4LjYzQzEwNC42ODUgMTA3LjExIDEwNC4xNTUgMTI0LjUzIDEwNC4xODUgMTI1LjE5QzEwNC4xODUgMTI1LjE5IDEwMS4yNzUgMTU2LjY5IDExMC40NzUgMTcyLjY3QzEzMS41NzUgMjA5LjM0IDE4NS4wNDUgMTk5LjcgMTkxLjQ2NSAxNTguMzhDMTkxLjYyNSAxNTcuMzMgMTkxLjY4NSAxNTYuMjcgMTkxLjY3NSAxNTUuMjFDMTkxLjUzNSAxMzUuODYgMTkxLjcyNSA3Ni45Nzk5IDE5MS44NjUgNDguNTQ5OUMxOTIuMDM1IDQ1LjA1OTkgMTkxLjgxNSA0MS41NTk5IDE5MS4xNjUgMzguMDg5OUgxOTEuMTU1Wk01NS4wOTUxIDExOS41MUw1Ni4wMjUxIDEyMy41NkM1Ni40NDUxIDEzMS4zOSA1Ni4yNTUyIDE0NC41NCA1NS42ODUyIDE0OS43OEM1NC4xOTUyIDE2My41IDM5LjU1NTIgMTY2LjU1IDM0LjMwNTIgMTU2LjExQzMzLjMxNTIgMTU0LjE0IDMyLjg4NTIgMTUxLjk0IDMyLjg4NTIgMTQ5Ljc0Vjk2LjQyQzMyLjY4NTIgOTYuMjkgMzIuNDk1MiA5Ni4xNjAxIDMyLjMwNTIgOTYuMDIwMUM0MS4zMjUyIDEwMi4yOCA1My4yNzUxIDEwNi4wNyA1NS4wOTUxIDExOS41MlYxMTkuNTFaTTE1OS4wMTUgMTQ5LjczQzE1OS4wMTUgMTUxLjkzIDE1OC41ODUgMTU0LjEzIDE1Ny41OTUgMTU2LjFDMTUyLjM0NSAxNjYuNTQgMTM3LjcwNSAxNjMuNDkgMTM2LjIxNSAxNDkuNzdDMTM1LjY0NSAxNDQuNTMgMTM1LjQ1NSAxMzEuMzggMTM1Ljg3NSAxMjMuNTVMMTM2LjgwNSAxMTkuNUMxMzguNjE1IDEwNi4wNSAxNTAuNTc1IDEwMi4yNiAxNTkuNTk1IDk2LjAwMDFDMTU5LjQwNSA5Ni4xMzAxIDE1OS4yMDUgOTYuMjcgMTU5LjAwNSA5Ni40VjE0OS43MkwxNTkuMDE1IDE0OS43M1oiIGZpbGw9InVybCgjcGFpbnQwX2xpbmVhcl8xNTJfNzQyNykiLz4KPHBhdGggZD0iTTE5MS42NTUgMTUxLjY5SDE1OS4wMjVWOTYuMzk5OUMxNTkuMjE1IDk2LjI2OTkgMTU5LjQxNSA5Ni4xNCAxNTkuNjA1IDk2QzE2OC44ODUgODkuNTYgMTc5LjI5NSA4MS4zMDk4IDE4NS4zNjUgNzAuODM5OEwxODcuNjI1IDY1Ljg1MDFDMTkwLjExNSA2MC4zNzAxIDE5MS41NjUgNTQuNDkgMTkxLjg2NSA0OC41NEMxOTEuNzM1IDc1LjQyIDE5MS41NjUgMTI5LjUgMTkxLjY1NSAxNTEuNjhWMTUxLjY5WiIgZmlsbD0idXJsKCNwYWludDFfbGluZWFyXzE1Ml83NDI3KSIvPgo8cGF0aCBkPSJNMC4yNTQ5NDQgMTUxLjY5SDMyLjg4NDlWOTYuMzk5OUMzMi42OTUgOTYuMjY5OSAzMi40OTQ5IDk2LjE0IDMyLjMwNDkgOTZDMjMuMDI0OSA4OS41NiAxMi42MTQ5IDgxLjMwOTggNi41NDQ5MiA3MC44Mzk4TDQuMjg0OTEgNjUuODUwMUMxLjc5NDkxIDYwLjM3MDEgMC4zNDQ5MjIgNTQuNDkgMC4wNDQ5MjE5IDQ4LjU0QzAuMTc0OTIyIDc1LjQyIDAuMzQ0OTQ0IDEyOS41IDAuMjU0OTQ0IDE1MS42OFYxNTEuNjlaIiBmaWxsPSJ1cmwoI3BhaW50Ml9saW5lYXJfMTUyXzc0MjcpIi8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MF9saW5lYXJfMTUyXzc0MjciIHgxPSI5NS45NTUyIiB5MT0iMzMuMjEwMSIgeDI9Ijk1Ljk1NTIiIHkyPSIxOTguMTkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzAwQ0FEOCIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDUzNjAiLz4KPC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDFfbGluZWFyXzE1Ml83NDI3IiB4MT0iMTc1LjQzNSIgeTE9IjE1MC4yOSIgeDI9IjE3NS40MzUiIHkyPSI4Mi4yNCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcCBzdG9wLWNvbG9yPSIjMDI3MzgwIi8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzAwNTM2MCIvPgo8L2xpbmVhckdyYWRpZW50Pgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50Ml9saW5lYXJfMTUyXzc0MjciIHgxPSIxNi40NzQ5IiB5MT0iMTUwLjg4IiB4Mj0iMTYuNDc0OSIgeTI9IjkxLjE3IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiMwMjczODAiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDA1MzYwIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+Cg==" alt="Mira">
+    <span class="topbar-right">Email Analytics Report</span>
+  </div>
+
+  <div class="hero">
+    <div class="hero-left">
+      <div class="eyebrow">Email campaign analytics</div>
+      <h1>Campaign<br><strong>Performance</strong></h1>
+      <p class="hero-sub">3 completed campaigns &nbsp;·&nbsp; 220 leads &nbsp;·&nbsp; 930 emails sent &nbsp;·&nbsp; 3 demos booked</p>
+    </div>
+    <div class="hero-right">
+      <div class="hero-date">March<br>2026</div>
+      <span class="status-pill">All sequences complete</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- TOTALS SUMMARY -->
+    <div class="section-label">Total across all campaigns</div>
+    <div class="totals-strip">
+      <div class="totals-item">
+        <div class="totals-label">Campaigns</div>
+        <div class="totals-value highlight">3</div>
+      </div>
+      <div class="totals-item">
+        <div class="totals-label">Leads imported</div>
+        <div class="totals-value">220</div>
+      </div>
+      <div class="totals-item">
+        <div class="totals-label">Emails sent</div>
+        <div class="totals-value">930</div>
+      </div>
+      <div class="totals-item">
+        <div class="totals-label">Avg open rate</div>
+        <div class="totals-value highlight">48.31<span>%</span></div>
+      </div>
+      <div class="totals-item">
+        <div class="totals-label">Total clicks</div>
+        <div class="totals-value">39</div>
+      </div>
+      <div class="totals-item">
+        <div class="totals-label">Demos booked</div>
+        <div class="totals-value highlight">3</div>
+      </div>
+    </div>
+
+    <!-- TOTALS CHARTS -->
+    <div class="section-label">Overall performance</div>
+    <div class="charts-grid" style="margin-bottom:14px;">
+      <div class="chart-card">
+        <div class="chart-title">Open rate by campaign — final</div>
+        <div class="chart-desc">Completed sequences, all 5 steps sent</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-swatch" style="background:#003B44;"></div>OneDoc Users</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#00CAD8;"></div>General Campaign</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#7de8ef;"></div>Axenita Users</div>
+        </div>
+        <div style="position:relative;height:200px;"><canvas id="openRateChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Reply breakdown — total</div>
+        <div class="chart-desc">All 40 replies across campaigns</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-swatch" style="background:#b0cdd1;"></div>Auto-replies — ~35</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#003B44;"></div>Not interested — ~4</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#00CAD8;"></div>Positive — 1</div>
+        </div>
+        <div style="position:relative;height:200px;"><canvas id="repliesChart"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-card" style="margin-bottom:14px;">
+      <div class="chart-title">Clicks & CTR by campaign — final</div>
+      <div class="chart-desc">Total clicks (bars) vs. CTR % (line) per campaign</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#003B44;"></div>Clicks</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#00CAD8;border-radius:50%;"></div>CTR (%)</div>
+      </div>
+      <div style="position:relative;height:175px;"><canvas id="ctrChart"></canvas></div>
+    </div>
+
+    <div class="note-strip">
+      <div class="note-icon">i</div>
+      <div>Of 39 flagged "negative" replies, the majority are <strong>auto-replies</strong>. Only ~4 are genuine rejections — a true rejection rate of <strong>1.8%</strong> across all leads.</div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- DETAILED BREAKDOWN -->
+    <div class="section-label">Detailed breakdown by campaign</div>
+    <div class="table-card" style="margin-bottom:2.5rem;">
+      <table>
+        <thead>
+          <tr>
+            <th>Campaign</th>
+            <th>Leads</th>
+            <th>Emails</th>
+            <th>Sequence</th>
+            <th>Open rate</th>
+            <th>Clicks</th>
+            <th>CTR</th>
+            <th>Auto-replies</th>
+            <th>Not interested</th>
+            <th>Positive</th>
+            <th>Demos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:500;">OneDoc Users</td>
+            <td>56</td><td>229</td>
+            <td><span class="seq-badge seq-done">5 / 5 ✓</span></td>
+            <td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:42.86%;background:#003B44;"></div></div>42.9%</div></td>
+            <td>10</td><td>17.9%</td>
+            <td style="color:var(--ink-3);">~8</td>
+            <td style="color:#003B44;font-weight:500;">~3</td>
+            <td style="color:#00CAD8;font-weight:500;">1</td>
+            <td><span class="demo-badge">1 booked</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:500;">General Campaign</td>
+            <td>154</td><td>655</td>
+            <td><span class="seq-badge seq-done">5 / 5 ✓</span></td>
+            <td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:72.08%;background:#00CAD8;"></div></div>72.1%</div></td>
+            <td>28</td><td>18.2%</td>
+            <td style="color:var(--ink-3);">~26</td>
+            <td style="color:#003B44;font-weight:500;">~1</td>
+            <td class="dash">0</td>
+            <td><span class="demo-badge">2 booked</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:500;">Axenita Users</td>
+            <td>10</td><td>46</td>
+            <td><span class="seq-badge seq-done">5 / 5 ✓</span></td>
+            <td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:30%;background:#7de8ef;"></div></div>30.0%</div></td>
+            <td>1</td><td>10.0%</td>
+            <td style="color:var(--ink-3);">~1</td>
+            <td class="dash">0</td>
+            <td class="dash">0</td>
+            <td class="dash">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- KEY TAKEAWAYS -->
+    <div class="section-label">Key takeaways</div>
+    <div class="insights">
+      <div class="insight">
+        <div class="insight-num">2.3×</div>
+        <div class="insight-title">Above industry open rate</div>
+        <div class="insight-body">48.3% average vs. ~21% industry benchmark. General Campaign hit 72% — exceptional for cold outreach.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-num">1.8%</div>
+        <div class="insight-title">True rejection rate</div>
+        <div class="insight-body">Only ~4 of 40 replies were genuine rejections. The rest are auto-replies — not a signal of poor targeting.</div>
+      </div>
+      <div class="insight">
+        <div class="insight-num">3</div>
+        <div class="insight-title">Demos booked</div>
+        <div class="insight-body">1 from OneDoc Users, 2 from General Campaign.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-bar">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzMzIiBoZWlnaHQ9IjE5NiIgdmlld0JveD0iMCAwIDczMyAxOTYiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0yNzguNzM1IDE2OS41MUgyNTEuOTg1VjQ4LjkxMDJIMjc3Ljg4NVY2MC44OTk5QzI4Ni45ODUgNTIuNDQ5OSAyOTkuODI1IDQ3LjgzOTggMzE0LjI2NSA0Ny44Mzk4QzMzMS44MTUgNDcuODM5OCAzNDYuMDQ1IDU0LjU3OTkgMzU0LjI4NSA2Ni42Njk5QzM2NC4yMzUgNTQuNjc5OSAzNzkuOTY1IDQ3LjgzOTggMzk4LjA1NSA0Ny44Mzk4QzQwNy41NzUgNDcuODM5OCA0MTYuMTM1IDQ5Ljc2OTggNDIzLjYzNSA1My41MDk4QzQzOS41NzUgNjEuNTM5OCA0NDguMDM1IDc4LjAwOTcgNDQ4LjAzNSAxMDAuN1YxNjkuNTFINDIxLjA2NVYxMDIuOTVDNDIxLjA2NSA4Mi45Mzk3IDQxMi4wNzUgNzIuNjY5OSAzOTQuNjM1IDcyLjY2OTlDMzg4LjEwNSA3Mi42Njk5IDM4Mi43NTUgNzMuOTQ5OSAzNzguMDQ1IDc2LjYyOTlDMzY4LjMwNSA4MS45Nzk5IDM2My4zODUgOTIuMjQ5NyAzNjMuMzg1IDEwNy40NVYxNjkuNTJIMzM2LjQxNVYxMDIuOTZDMzM2LjQxNSA4Mi44NCAzMjcuNjM1IDcyLjY3OTcgMzA5Ljk4NSA3Mi42Nzk3QzMwMy42NzUgNzIuNjc5NyAyOTguMjE1IDc0LjA3MDEgMjkzLjYxNSA3Ni42NDAxQzI4My43NzUgODIuMjAwMSAyNzguNzM1IDkyLjU4IDI3OC43MzUgMTA3LjQ2VjE2OS41M1YxNjkuNTFaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNDgwLjExNSAxNi41ODk4QzQ4MC4xMTUgNy4xNjk4NCA0ODcuMzk1IDAgNDk3LjIzNSAwQzUwNy4wNzUgMCA1MTQuMjQ1IDYuOTYwMTYgNTE0LjI0NSAxNi4xNjAyQzUxNC4yNDUgMjYuMDAwMiA1MDcuMDc1IDMzLjA2OTggNDk3LjIzNSAzMy4wNjk4QzQ4Ny4zOTUgMzMuMDY5OCA0ODAuMTE1IDI2LjAwOTggNDgwLjExNSAxNi41ODk4Wk01MTAuNTA1IDE2OS41MUg0ODMuODU1VjQ4LjkxMDJINTEwLjUwNVYxNjkuNTFaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNNTczLjEwNSAxNjkuNTFINTQ2LjM1NVY0OC45MTAxSDU3Mi4yNTVWNjEuODU5OEM1ODEuNTY1IDUyLjExOTggNTk1LjkwNSA0Ny4xOTk3IDYxMy45ODUgNDcuOTQ5N1Y3NS4wMkM2MDkuODE1IDczLjk1IDYwOS40OTUgNzMuOTQ5NiA2MDguNDI1IDczLjk0OTZINjA2LjE3NUM1ODUuMDk1IDczLjk0OTYgNTczLjEwNSA4Ni43ODk5IDU3My4xMDUgMTA5LjQ4VjE2OS41MVoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik02NDkuOTM1IDE2Ni44M0M2MzUuNTk1IDE2MC40MSA2MjcuMzU1IDE0OC4zMiA2MjcuMzU1IDEzMy41NUM2MjcuMzU1IDEyNy4xMyA2MjkuMDY1IDEyMC45MiA2MzIuNDk1IDExNC43MkM2MzkuNDU1IDEwMi45NSA2NTQuNDM2IDk2Ljk2IDY3Ni4yNjYgOTYuOTZINzA2LjEyNVY5NS44OTAxQzcwNi4xMjUgODAuNDgwMSA2OTcuNjc1IDcyLjg3OTkgNjgwLjIyNSA3Mi44Nzk5QzY2NS4xMzUgNzIuODc5OSA2NTcuMDA2IDc4LjY1OTggNjU0LjY0NiA5MC4zMTk4TDYzMS4yMTUgNzcuMjU5OEM2MzcuMzE1IDU4LjUyOTggNjU0Ljg2NSA0OC4yNTk4IDY4MC4yMjUgNDguMjU5OEM3MTMuNjE1IDQ4LjI1OTggNzMyLjk4NSA2Ni4wMiA3MzIuOTg1IDk2LjUyVjE3MC4xNEg3MDYuNjY2VjE2MS43OUM2OTguMjE2IDE2Ny43OCA2ODYuOTc1IDE3MS4xIDY3NC4yNDUgMTcxLjFDNjY1LjI1NSAxNzEuMSA2NTcuMDE1IDE2OS42IDY0OS45NTUgMTY2LjgyTDY0OS45MzUgMTY2LjgzWk03MDYuMTE1IDEzMC4yNFYxMTkuMzJINjc2LjY4NUM2NjAuOTU1IDExOS4zMiA2NTMuODk2IDEyMy45MiA2NTMuODk2IDEzMy4xMkM2NTMuODk2IDE0Mi4zMiA2NjIuMDI2IDE0Ny44OSA2NzYuMjY2IDE0Ny44OUM2OTAuNTA2IDE0Ny44OSA3MDAuNzY1IDE0MiA3MDYuMTI1IDEzMC4yM0w3MDYuMTE1IDEzMC4yNFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xOTEuMTU1IDM4LjA4OTlDMTg5Ljc0NSAzMC41OTk5IDE4Ni41MjUgMjQuMTYwMSAxNzguODM1IDE3LjMxMDFDMTUxLjM3NSAtNy4xNDk4NSAxMTUuNDE1IDE1LjM2MDEgOTUuOTU1MSAzOC4yMTAxQzc2LjQ5NTEgMTUuMzUwMSA0MC41MjUyIC03LjE0OTg1IDEzLjA3NTIgMTcuMzEwMUM1LjM4NTE5IDI0LjE2MDEgMi4xNjUxOCAzMC41OTk5IDAuNzU1MTggMzguMDg5OUMwLjEwNTE4IDQxLjU1OTkgLTAuMTE0ODMyIDQ1LjA1OTkgMC4wNTUxNjgxIDQ4LjU0OTlDMC4xOTUxNjggNzYuOTc5OSAwLjM3NTE3MSAxMzUuODcgMC4yNDUxNzEgMTU1LjIxQzAuMjQ1MTcxIDE1Ni4yNyAwLjI5NTEzMiAxNTcuMzMgMC40NTUxMzIgMTU4LjM4QzYuODc1MTMgMTk5LjcgNjAuMzQ1MiAyMDkuMzQgODEuNDQ1MiAxNzIuNjdDOTAuNjM1MiAxNTYuNjkgODcuNzM1MiAxMjUuMTkgODcuNzM1MiAxMjUuMTlDODcuNzY1MiAxMjQuNTIgODcuMjQ1MSAxMDcuMTEgNzUuNjQ1MSA4OC42M0M2Ni4wNDUxIDczLjM0IDUwLjIzNTIgNzAuNDI5OCAzOC4zNjUyIDU5LjY3OThDMjkuOTM1MiA1Mi4wMzk4IDMyLjI0NTIgNDAuNzMwMiA0MS4yNDUyIDM5LjMzMDJDNDQuMjk1MiAzOC44NjAyIDQ3LjQwNTEgMzkuNzYwMiA0OS44OTUxIDQxLjU4MDJDNTguMzY1MSA0Ny43NzAyIDY2LjU2NTIgNTQuMjkgNzMuNjI1MiA2Mi4xNUM4My4wMTUyIDcyLjYxIDkwLjk4NTIgODQuODYgOTUuNjg1MiA5OC4xM0M5NS43NDUyIDk4LjE4IDk1LjgzNTEgOTguMTI5OSA5NS45NTUxIDk4LjAwOTlDOTYuMDY1MSA5OC4xMjk5IDk2LjE2NTIgOTguMTggOTYuMjI1MiA5OC4xM0MxMDAuOTM1IDg0Ljg2IDEwOC44OTUgNzIuNjEgMTE4LjI4NSA2Mi4xNUMxMjUuMzM1IDU0LjMgMTMzLjUzNSA0Ny43NzAyIDE0Mi4wMTUgNDEuNTgwMkMxNDQuNTE1IDM5Ljc2MDIgMTQ3LjYxNSAzOC44NTAyIDE1MC42NzUgMzkuMzMwMkMxNTkuNjg1IDQwLjczMDIgMTYxLjk5NSA1Mi4wMzk4IDE1My41NTUgNTkuNjc5OEMxNDEuNjk1IDcwLjQyOTggMTI1Ljg3NSA3My4zMyAxMTYuMjc1IDg4LjYzQzEwNC42ODUgMTA3LjExIDEwNC4xNTUgMTI0LjUzIDEwNC4xODUgMTI1LjE5QzEwNC4xODUgMTI1LjE5IDEwMS4yNzUgMTU2LjY5IDExMC40NzUgMTcyLjY3QzEzMS41NzUgMjA5LjM0IDE4NS4wNDUgMTk5LjcgMTkxLjQ2NSAxNTguMzhDMTkxLjYyNSAxNTcuMzMgMTkxLjY4NSAxNTYuMjcgMTkxLjY3NSAxNTUuMjFDMTkxLjUzNSAxMzUuODYgMTkxLjcyNSA3Ni45Nzk5IDE5MS44NjUgNDguNTQ5OUMxOTIuMDM1IDQ1LjA1OTkgMTkxLjgxNSA0MS41NTk5IDE5MS4xNjUgMzguMDg5OUgxOTEuMTU1Wk01NS4wOTUxIDExOS41MUw1Ni4wMjUxIDEyMy41NkM1Ni40NDUxIDEzMS4zOSA1Ni4yNTUyIDE0NC41NCA1NS42ODUyIDE0OS43OEM1NC4xOTUyIDE2My41IDM5LjU1NTIgMTY2LjU1IDM0LjMwNTIgMTU2LjExQzMzLjMxNTIgMTU0LjE0IDMyLjg4NTIgMTUxLjk0IDMyLjg4NTIgMTQ5Ljc0Vjk2LjQyQzMyLjY4NTIgOTYuMjkgMzIuNDk1MiA5Ni4xNjAxIDMyLjMwNTIgOTYuMDIwMUM0MS4zMjUyIDEwMi4yOCA1My4yNzUxIDEwNi4wNyA1NS4wOTUxIDExOS41MlYxMTkuNTFaTTE1OS4wMTUgMTQ5LjczQzE1OS4wMTUgMTUxLjkzIDE1OC41ODUgMTU0LjEzIDE1Ny41OTUgMTU2LjFDMTUyLjM0NSAxNjYuNTQgMTM3LjcwNSAxNjMuNDkgMTM2LjIxNSAxNDkuNzdDMTM1LjY0NSAxNDQuNTMgMTM1LjQ1NSAxMzEuMzggMTM1Ljg3NSAxMjMuNTVMMTM2LjgwNSAxMTkuNUMxMzguNjE1IDEwNi4wNSAxNTAuNTc1IDEwMi4yNiAxNTkuNTk1IDk2LjAwMDFDMTU5LjQwNSA5Ni4xMzAxIDE1OS4yMDUgOTYuMjcgMTU5LjAwNSA5Ni40VjE0OS43MkwxNTkuMDE1IDE0OS43M1oiIGZpbGw9InVybCgjcGFpbnQwX2xpbmVhcl8xNTJfNzQyNykiLz4KPHBhdGggZD0iTTE5MS42NTUgMTUxLjY5SDE1OS4wMjVWOTYuMzk5OUMxNTkuMjE1IDk2LjI2OTkgMTU5LjQxNSA5Ni4xNCAxNTkuNjA1IDk2QzE2OC44ODUgODkuNTYgMTc5LjI5NSA4MS4zMDk4IDE4NS4zNjUgNzAuODM5OEwxODcuNjI1IDY1Ljg1MDFDMTkwLjExNSA2MC4zNzAxIDE5MS41NjUgNTQuNDkgMTkxLjg2NSA0OC41NEMxOTEuNzM1IDc1LjQyIDE5MS41NjUgMTI5LjUgMTkxLjY1NSAxNTEuNjhWMTUxLjY5WiIgZmlsbD0idXJsKCNwYWludDFfbGluZWFyXzE1Ml83NDI3KSIvPgo8cGF0aCBkPSJNMC4yNTQ5NDQgMTUxLjY5SDMyLjg4NDlWOTYuMzk5OUMzMi42OTUgOTYuMjY5OSAzMi40OTQ5IDk2LjE0IDMyLjMwNDkgOTZDMjMuMDI0OSA4OS41NiAxMi42MTQ5IDgxLjMwOTggNi41NDQ5MiA3MC44Mzk4TDQuMjg0OTEgNjUuODUwMUMxLjc5NDkxIDYwLjM3MDEgMC4zNDQ5MjIgNTQuNDkgMC4wNDQ5MjE5IDQ4LjU0QzAuMTc0OTIyIDc1LjQyIDAuMzQ0OTQ0IDEyOS41IDAuMjU0OTQ0IDE1MS42OFYxNTEuNjlaIiBmaWxsPSJ1cmwoI3BhaW50Ml9saW5lYXJfMTUyXzc0MjcpIi8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MF9saW5lYXJfMTUyXzc0MjciIHgxPSI5NS45NTUyIiB5MT0iMzMuMjEwMSIgeDI9Ijk1Ljk1NTIiIHkyPSIxOTguMTkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzAwQ0FEOCIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDUzNjAiLz4KPC9saW5lYXJHcmFkaWVudD4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDFfbGluZWFyXzE1Ml83NDI3IiB4MT0iMTc1LjQzNSIgeTE9IjE1MC4yOSIgeDI9IjE3NS40MzUiIHkyPSI4Mi4yNCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcCBzdG9wLWNvbG9yPSIjMDI3MzgwIi8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzAwNTM2MCIvPgo8L2xpbmVhckdyYWRpZW50Pgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50Ml9saW5lYXJfMTUyXzc0MjciIHgxPSIxNi40NzQ5IiB5MT0iMTUwLjg4IiB4Mj0iMTYuNDc0OSIgeTI9IjkxLjE3IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiMwMjczODAiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDA1MzYwIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+Cg==" alt="Mira">
+    <span>Email Analytics · March 2026 · All sequences complete</span>
+  </div>
+
+</div>
+
+<script>
+  const campaigns = ['OneDoc Users', 'General Campaign', 'Axenita Users'];
+
+  new Chart(document.getElementById('openRateChart'), {
+    type: 'bar',
+    data: {
+      labels: campaigns,
+      datasets: [{ data: [42.86, 72.08, 30], backgroundColor: ['#003B44','#00CAD8','#7de8ef'], borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.raw.toFixed(1) + '%' } } },
+      scales: {
+        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 11 }, color: '#8aa8ad' }, grid: { color: 'rgba(0,59,68,0.07)' }, border: { display: false } },
+        x: { ticks: { font: { size: 11 }, color: '#8aa8ad' }, grid: { display: false }, border: { display: false } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('repliesChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Auto-replies', 'Not interested', 'Positive'],
+      datasets: [{ data: [35, 4, 1], backgroundColor: ['#b0cdd1','#003B44','#00CAD8'], borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw } } }
+    }
+  });
+
+  new Chart(document.getElementById('ctrChart'), {
+    type: 'bar',
+    data: {
+      labels: campaigns,
+      datasets: [
+        { label: 'Clicks', data: [10,28,1], backgroundColor: '#003B44', borderRadius: 5, borderSkipped: false, yAxisID: 'y' },
+        { label: 'CTR (%)', data: [17.86,18.18,10], type: 'line', borderColor: '#00CAD8', backgroundColor: 'rgba(0,202,216,0.08)', pointBackgroundColor: '#00CAD8', pointRadius: 5, tension: 0.3, yAxisID: 'y2', fill: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, position: 'left', ticks: { font: { size: 11 }, color: '#8aa8ad', stepSize: 5 }, grid: { color: 'rgba(0,59,68,0.07)' }, border: { display: false }, title: { display: true, text: 'Clicks', font: { size: 11 }, color: '#8aa8ad' } },
+        y2: { beginAtZero: true, position: 'right', max: 25, ticks: { callback: v => v + '%', font: { size: 11 }, color: '#8aa8ad' }, grid: { display: false }, border: { display: false }, title: { display: true, text: 'CTR', font: { size: 11 }, color: '#8aa8ad' } },
+        x: { ticks: { font: { size: 11 }, color: '#8aa8ad' }, grid: { display: false }, border: { display: false } }
+      }
+    }
+  });
+</script>
+</body>
+</html>
